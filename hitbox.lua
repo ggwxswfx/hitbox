@@ -1,10 +1,11 @@
--- Modern HitBox GUI (Roblox Luau - Full Rewrite)
+-- Modern HitBox GUI (Entegre Mantık)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
--- Eski GUI varsa temizle
+-- Eski GUI kalıntısını temizle
 if CoreGui:FindFirstChild("LiquidHitboxGui") then
     CoreGui.LiquidHitboxGui:Destroy()
 end
@@ -28,7 +29,7 @@ local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 10)
 UICorner.Parent = MainFrame
 
--- Üst Başlık Çubuğu
+-- Başlık
 local TitleBar = Instance.new("Frame")
 TitleBar.Size = UDim2.new(1, 0, 0, 45)
 TitleBar.BackgroundTransparency = 1
@@ -45,7 +46,7 @@ Title.Font = Enum.Font.GothamBold
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = TitleBar
 
--- Ana Özellik Toggle Butonu
+-- Toggle Butonu
 local ToggleButton = Instance.new("TextButton")
 ToggleButton.Size = UDim2.new(0, 250, 0, 40)
 ToggleButton.Position = UDim2.new(0.5, -125, 0, 55)
@@ -109,14 +110,13 @@ local UnloadCorner = Instance.new("UICorner")
 UnloadCorner.CornerRadius = UDim.new(0, 8)
 UnloadCorner.Parent = UnloadButton
 
--- Değişkenler ve Mantık
+-- Mantık ve Fonksiyonlar
 local enabled = false
 local hitboxSize = 2
 local originalSizes = {}
-local runConnection = nil
 
 -- Hitbox Güncelleme Döngüsü
-runConnection = game:GetService("RunService").RenderStepped:Connect(function()
+local runConnection = RunService.RenderStepped:Connect(function()
     if enabled then
         for _, player in ipairs(Players:GetPlayers()) do
             if player ~= LocalPlayer and player.Character then
@@ -147,7 +147,6 @@ ToggleButton.MouseButton1Click:Connect(function()
         ToggleButton.TextColor3 = Color3.fromRGB(160, 160, 175)
         ToggleButton.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
         
-        -- Kapatıldığında eski boyutlara döndür
         for player, size in pairs(originalSizes) do
             if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                 player.Character.HumanoidRootPart.Size = size
@@ -158,7 +157,7 @@ ToggleButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- Slider Kontrolü
+-- Slider Sürükleme Mantığı
 local dragging = false
 SliderBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -183,19 +182,18 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- Sağ Shift ile Arayüzü Gizleme / Gösterme
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
+-- Sağ Shift Tuşu Kontrolü
+UserInputService.InputBegan:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.RightShift then
         MainFrame.Visible = not MainFrame.Visible
     end
 end)
 
--- Kökten Kapanış (Unload)
+-- Unload Butonu İşlemi
 UnloadButton.MouseButton1Click:Connect(function()
     if runConnection then
         runConnection:Disconnect()
     end
-    -- Eski boyutları geri yükle
     for player, size in pairs(originalSizes) do
         if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             player.Character.HumanoidRootPart.Size = size
