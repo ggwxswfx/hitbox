@@ -88,7 +88,7 @@ local HBCorner = Instance.new("UICorner")
 HBCorner.CornerRadius = UDim.new(0, 6)
 HBCorner.Parent = HitboxToggle
 
--- Hitbox Slider Alanı (Görsel Panel İçin)
+-- Hitbox Slider Alanı
 local SliderContainer = Instance.new("Frame")
 SliderContainer.Size = UDim2.new(1, 0, 0, 50)
 SliderContainer.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
