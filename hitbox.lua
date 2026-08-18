@@ -1,24 +1,25 @@
--- Modern HitBox GUI (Entegre Mantık)
+-- Modern Combat Client GUI (Hitbox + Touch Fling Entegre)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
 -- Eski GUI kalıntısını temizle
-if CoreGui:FindFirstChild("LiquidHitboxGui") then
-    CoreGui.LiquidHitboxGui:Destroy()
+if CoreGui:FindFirstChild("LiquidCombatGui") then
+    CoreGui.LiquidCombatGui:Destroy()
 end
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "LiquidHitboxGui"
+ScreenGui.Name = "LiquidCombatGui"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = CoreGui
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 280, 0, 240)
-MainFrame.Position = UDim2.new(0.5, -140, 0.5, -120)
+MainFrame.Size = UDim2.new(0, 280, 0, 310)
+MainFrame.Position = UDim2.new(0.5, -140, 0.5, -155)
 MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
@@ -39,50 +40,50 @@ local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -20, 1, 0)
 Title.Position = UDim2.new(0, 15, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "Combat / HitBoxes"
+Title.Text = "Combat / Modules"
 Title.TextColor3 = Color3.fromRGB(235, 235, 245)
 Title.TextSize = 16
 Title.Font = Enum.Font.GothamBold
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = TitleBar
 
--- Toggle Butonu
-local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(0, 250, 0, 40)
-ToggleButton.Position = UDim2.new(0.5, -125, 0, 55)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
-ToggleButton.Text = "HitBoxes: OFF"
-ToggleButton.TextColor3 = Color3.fromRGB(160, 160, 175)
-ToggleButton.TextSize = 14
-ToggleButton.Font = Enum.Font.GothamMedium
-ToggleButton.Parent = MainFrame
+-- 1. Modül: HitBox Toggle Butonu
+local HitboxToggle = Instance.new("TextButton")
+HitboxToggle.Size = UDim2.new(0, 250, 0, 38)
+HitboxToggle.Position = UDim2.new(0.5, -125, 0, 50)
+HitboxToggle.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+HitboxToggle.Text = "HitBoxes: OFF"
+HitboxToggle.TextColor3 = Color3.fromRGB(160, 160, 175)
+HitboxToggle.TextSize = 13
+HitboxToggle.Font = Enum.Font.GothamMedium
+HitboxToggle.Parent = MainFrame
 
-local ToggleCorner = Instance.new("UICorner")
-ToggleCorner.CornerRadius = UDim.new(0, 8)
-ToggleCorner.Parent = ToggleButton
+local HBCorner = Instance.new("UICorner")
+HBCorner.CornerRadius = UDim.new(0, 8)
+HBCorner.Parent = HitboxToggle
 
--- Slider Alanı
+-- Hitbox Slider Alanı
 local ValueLabel = Instance.new("TextLabel")
 ValueLabel.Size = UDim2.new(1, -30, 0, 20)
-ValueLabel.Position = UDim2.new(0, 15, 0, 110)
+ValueLabel.Position = UDim2.new(0, 15, 0, 95)
 ValueLabel.BackgroundTransparency = 1
-ValueLabel.Text = "Size: 2"
+ValueLabel.Text = "Hitbox Size: 2"
 ValueLabel.TextColor3 = Color3.fromRGB(180, 180, 195)
-ValueLabel.TextSize = 13
+ValueLabel.TextSize = 12
 ValueLabel.Font = Enum.Font.Gotham
 ValueLabel.TextXAlignment = Enum.TextXAlignment.Left
 ValueLabel.Parent = MainFrame
 
 local SliderBar = Instance.new("TextButton")
-SliderBar.Size = UDim2.new(0, 250, 0, 10)
-SliderBar.Position = UDim2.new(0.5, -125, 0, 138)
+SliderBar.Size = UDim2.new(0, 250, 0, 8)
+SliderBar.Position = UDim2.new(0.5, -125, 0, 120)
 SliderBar.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
 SliderBar.Text = ""
 SliderBar.AutoButtonColor = false
 SliderBar.Parent = MainFrame
 
 local SliderCorner = Instance.new("UICorner")
-SliderCorner.CornerRadius = UDim.new(0, 5)
+SliderCorner.CornerRadius = UDim.new(0, 4)
 SliderCorner.Parent = SliderBar
 
 local SliderFill = Instance.new("Frame")
@@ -92,13 +93,28 @@ SliderFill.BorderSizePixel = 0
 SliderFill.Parent = SliderBar
 
 local SliderFillCorner = Instance.new("UICorner")
-SliderFillCorner.CornerRadius = UDim.new(0, 5)
+SliderFillCorner.CornerRadius = UDim.new(0, 4)
 SliderFillCorner.Parent = SliderFill
+
+-- 2. Modül: Touch Fling Toggle Butonu
+local FlingToggle = Instance.new("TextButton")
+FlingToggle.Size = UDim2.new(0, 250, 0, 38)
+FlingToggle.Position = UDim2.new(0.5, -125, 0, 145)
+FlingToggle.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+FlingToggle.Text = "Touch Fling: OFF"
+FlingToggle.TextColor3 = Color3.fromRGB(160, 160, 175)
+FlingToggle.TextSize = 13
+FlingToggle.Font = Enum.Font.GothamMedium
+FlingToggle.Parent = MainFrame
+
+local FlingCorner = Instance.new("UICorner")
+FlingCorner.CornerRadius = UDim.new(0, 8)
+FlingCorner.Parent = FlingToggle
 
 -- Unload Butonu
 local UnloadButton = Instance.new("TextButton")
 UnloadButton.Size = UDim2.new(0, 250, 0, 35)
-UnloadButton.Position = UDim2.new(0.5, -125, 0, 180)
+UnloadButton.Position = UDim2.new(0.5, -125, 0, 205)
 UnloadButton.BackgroundColor3 = Color3.fromRGB(55, 25, 30)
 UnloadButton.Text = "Unload Script"
 UnloadButton.TextColor3 = Color3.fromRGB(255, 100, 100)
@@ -110,14 +126,37 @@ local UnloadCorner = Instance.new("UICorner")
 UnloadCorner.CornerRadius = UDim.new(0, 8)
 UnloadCorner.Parent = UnloadButton
 
--- Mantık ve Fonksiyonlar
-local enabled = false
+-- Bilgilendirme Notu
+local InfoLabel = Instance.new("TextLabel")
+InfoLabel.Size = UDim2.new(1, -30, 0, 20)
+InfoLabel.Position = UDim2.new(0, 15, 0, 255)
+InfoLabel.BackgroundTransparency = 1
+InfoLabel.Text = "[RightShift] Menu Toggle"
+InfoLabel.TextColor3 = Color3.fromRGB(100, 100, 115)
+InfoLabel.TextSize = 11
+InfoLabel.Font = Enum.Font.Gotham
+InfoLabel.TextXAlignment = Enum.TextXAlignment.Center
+InfoLabel.Parent = MainFrame
+
+-- --- SCRIPT MANTIKLARI ---
+
+-- Değişkenler
+local hbEnabled = false
 local hitboxSize = 2
 local originalSizes = {}
 
--- Hitbox Güncelleme Döngüsü
-local runConnection = RunService.RenderStepped:Connect(function()
-    if enabled then
+local flingEnabled = false
+local flingThread = nil
+
+if not ReplicatedStorage:FindFirstChild("juisdfj0i32i0eidsuf0iok") then
+    local detection = Instance.new("Decal")
+    detection.Name = "juisdfj0i32i0eidsuf0iok"
+    detection.Parent = ReplicatedStorage
+end
+
+-- Hitbox Döngüsü
+local hbConnection = RunService.RenderStepped:Connect(function()
+    if hbEnabled then
         for _, player in ipairs(Players:GetPlayers()) do
             if player ~= LocalPlayer and player.Character then
                 local hrp = player.Character:FindFirstChild("HumanoidRootPart")
@@ -135,17 +174,17 @@ local runConnection = RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Toggle İşlemi
-ToggleButton.MouseButton1Click:Connect(function()
-    enabled = not enabled
-    if enabled then
-        ToggleButton.Text = "HitBoxes: ON"
-        ToggleButton.TextColor3 = Color3.fromRGB(100, 255, 100)
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(35, 50, 35)
+-- Hitbox Toggle
+HitboxToggle.MouseButton1Click:Connect(function()
+    hbEnabled = not hbEnabled
+    if hbEnabled then
+        HitboxToggle.Text = "HitBoxes: ON"
+        HitboxToggle.TextColor3 = Color3.fromRGB(100, 255, 100)
+        HitboxToggle.BackgroundColor3 = Color3.fromRGB(35, 50, 35)
     else
-        ToggleButton.Text = "HitBoxes: OFF"
-        ToggleButton.TextColor3 = Color3.fromRGB(160, 160, 175)
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+        HitboxToggle.Text = "HitBoxes: OFF"
+        HitboxToggle.TextColor3 = Color3.fromRGB(160, 160, 175)
+        HitboxToggle.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
         
         for player, size in pairs(originalSizes) do
             if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
@@ -157,7 +196,7 @@ ToggleButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- Slider Sürükleme Mantığı
+-- Slider Kontrolü (1 - 100)
 local dragging = false
 SliderBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -178,27 +217,68 @@ UserInputService.InputChanged:Connect(function(input)
         SliderFill.Size = UDim2.new(relativeX, 0, 1, 0)
         
         hitboxSize = math.floor(1 + (relativeX * 99))
-        ValueLabel.Text = "Size: " .. hitboxSize
+        ValueLabel.Text = "Hitbox Size: " .. hitboxSize
     end
 end)
 
--- Sağ Shift Tuşu Kontrolü
+-- Touch Fling Fonksiyonu
+local function flingLoop()
+    local lp = Players.LocalPlayer
+    local c, hrp, vel, movel = nil, nil, nil, 0.1
+
+    while flingEnabled do
+        RunService.Heartbeat:Wait()
+        c = lp.Character
+        hrp = c and c:FindFirstChild("HumanoidRootPart")
+
+        if hrp then
+            vel = hrp.Velocity
+            hrp.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
+            RunService.RenderStepped:Wait()
+            hrp.Velocity = vel
+            RunService.Stepped:Wait()
+            hrp.Velocity = vel + Vector3.new(0, movel, 0)
+            movel = -movel
+        end
+    end
+end
+
+-- Fling Toggle
+FlingToggle.MouseButton1Click:Connect(function()
+    flingEnabled = not flingEnabled
+    if flingEnabled then
+        FlingToggle.Text = "Touch Fling: ON"
+        FlingToggle.TextColor3 = Color3.fromRGB(100, 255, 100)
+        FlingToggle.BackgroundColor3 = Color3.fromRGB(35, 50, 35)
+        
+        flingThread = coroutine.create(flingLoop)
+        coroutine.resume(flingThread)
+    else
+        FlingToggle.Text = "Touch Fling: OFF"
+        FlingToggle.TextColor3 = Color3.fromRGB(160, 160, 175)
+        FlingToggle.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+    end
+end)
+
+-- Sağ Shift ile Arayüz Gizleme/Gösterme
 UserInputService.InputBegan:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.RightShift then
         MainFrame.Visible = not MainFrame.Visible
     end
 end)
 
--- Unload Butonu İşlemi
+-- Kökten Kapanış (Unload)
 UnloadButton.MouseButton1Click:Connect(function()
-    if runConnection then
-        runConnection:Disconnect()
-    end
+    hbEnabled = false
+    flingEnabled = false
+    if hbConnection then hbConnection:Disconnect() end
+    
     for player, size in pairs(originalSizes) do
         if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             player.Character.HumanoidRootPart.Size = size
             player.Character.HumanoidRootPart.Transparency = 1
         end
     end
+    
     ScreenGui:Destroy()
 end)
