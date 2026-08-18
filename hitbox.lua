@@ -1,4 +1,4 @@
--- Modern Combat Client GUI (Hitbox + Touch Fling Entegre)
+-- Modern Combat Client GUI (Hitbox CanCollide Aktif + Touch Fling)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
@@ -140,10 +140,10 @@ InfoLabel.Parent = MainFrame
 
 -- --- SCRIPT MANTIKLARI ---
 
--- Değişkenler
 local hbEnabled = false
 local hitboxSize = 2
 local originalSizes = {}
+local originalCollisions = {}
 
 local flingEnabled = false
 local flingThread = nil
@@ -154,7 +154,7 @@ if not ReplicatedStorage:FindFirstChild("juisdfj0i32i0eidsuf0iok") then
     detection.Parent = ReplicatedStorage
 end
 
--- Hitbox Döngüsü
+-- Hitbox Döngüsü (CanCollide = true yapılarak çarpışma sağlandı)
 local hbConnection = RunService.RenderStepped:Connect(function()
     if hbEnabled then
         for _, player in ipairs(Players:GetPlayers()) do
@@ -164,10 +164,11 @@ local hbConnection = RunService.RenderStepped:Connect(function()
                 if hrp and humanoid and humanoid.Health > 0 then
                     if not originalSizes[player] then
                         originalSizes[player] = hrp.Size
+                        originalCollisions[player] = hrp.CanCollide
                     end
                     hrp.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
                     hrp.Transparency = 0.6
-                    hrp.CanCollide = false
+                    hrp.CanCollide = true -- İçinden geçilmesini engeller, fiziksel olarak çarparsın
                 end
             end
         end
@@ -190,9 +191,11 @@ HitboxToggle.MouseButton1Click:Connect(function()
             if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                 player.Character.HumanoidRootPart.Size = size
                 player.Character.HumanoidRootPart.Transparency = 1
+                player.Character.HumanoidRootPart.CanCollide = originalCollisions[player] or false
             end
         end
         originalSizes = {}
+        originalCollisions = {}
     end
 end)
 
@@ -277,6 +280,7 @@ UnloadButton.MouseButton1Click:Connect(function()
         if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             player.Character.HumanoidRootPart.Size = size
             player.Character.HumanoidRootPart.Transparency = 1
+            player.Character.HumanoidRootPart.CanCollide = originalCollisions[player] or false
         end
     end
     
