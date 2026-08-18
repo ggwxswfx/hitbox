@@ -1,4 +1,4 @@
--- Modern Combat Client GUI (Hitbox CanCollide Aktif + Touch Fling)
+-- Modern Combat Client GUI (Hitbox CanCollide False + Touch Fling Entegre)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
@@ -154,7 +154,7 @@ if not ReplicatedStorage:FindFirstChild("juisdfj0i32i0eidsuf0iok") then
     detection.Parent = ReplicatedStorage
 end
 
--- Hitbox Döngüsü (CanCollide = true yapılarak çarpışma sağlandı)
+-- Hitbox Döngüsü (CanCollide = false yapılarak içine girilebilir, kutu sınırına değince dokunma tetiklenir)
 local hbConnection = RunService.RenderStepped:Connect(function()
     if hbEnabled then
         for _, player in ipairs(Players:GetPlayers()) do
@@ -167,8 +167,8 @@ local hbConnection = RunService.RenderStepped:Connect(function()
                         originalCollisions[player] = hrp.CanCollide
                     end
                     hrp.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-                    hrp.Transparency = 0.6
-                    hrp.CanCollide = true -- İçinden geçilmesini engeller, fiziksel olarak çarparsın
+                    hrp.Transparency = 0.65 -- Kutunun şeffaflığı
+                    hrp.CanCollide = false -- İçine rahatça girebilmen için false yapıldı
                 end
             end
         end
@@ -191,7 +191,7 @@ HitboxToggle.MouseButton1Click:Connect(function()
             if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                 player.Character.HumanoidRootPart.Size = size
                 player.Character.HumanoidRootPart.Transparency = 1
-                player.Character.HumanoidRootPart.CanCollide = originalCollisions[player] or false
+                player.Character.HumanoidRootPart.CanCollide = originalCollisions[player] or true
             end
         end
         originalSizes = {}
@@ -280,7 +280,7 @@ UnloadButton.MouseButton1Click:Connect(function()
         if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             player.Character.HumanoidRootPart.Size = size
             player.Character.HumanoidRootPart.Transparency = 1
-            player.Character.HumanoidRootPart.CanCollide = originalCollisions[player] or false
+            player.Character.HumanoidRootPart.CanCollide = originalCollisions[player] or true
         end
     end
     
