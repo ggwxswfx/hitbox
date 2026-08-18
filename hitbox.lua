@@ -1,4 +1,4 @@
--- Modern Combat Client GUI (Hitbox CanCollide False + Touch Fling Entegre)
+-- Modern Combat Client GUI (Gelişmiş Hitbox Temas Mantığı + Touch Fling)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
@@ -143,7 +143,6 @@ InfoLabel.Parent = MainFrame
 local hbEnabled = false
 local hitboxSize = 2
 local originalSizes = {}
-local originalCollisions = {}
 
 local flingEnabled = false
 local flingThread = nil
@@ -154,7 +153,7 @@ if not ReplicatedStorage:FindFirstChild("juisdfj0i32i0eidsuf0iok") then
     detection.Parent = ReplicatedStorage
 end
 
--- Hitbox Döngüsü (CanCollide = false yapılarak içine girilebilir, kutu sınırına değince dokunma tetiklenir)
+-- Hitbox Güncelleme ve Sınır Optimizasyonu
 local hbConnection = RunService.RenderStepped:Connect(function()
     if hbEnabled then
         for _, player in ipairs(Players:GetPlayers()) do
@@ -164,11 +163,12 @@ local hbConnection = RunService.RenderStepped:Connect(function()
                 if hrp and humanoid and humanoid.Health > 0 then
                     if not originalSizes[player] then
                         originalSizes[player] = hrp.Size
-                        originalCollisions[player] = hrp.CanCollide
                     end
                     hrp.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-                    hrp.Transparency = 0.65 -- Kutunun şeffaflığı
-                    hrp.CanCollide = false -- İçine rahatça girebilmen için false yapıldı
+                    hrp.Transparency = 0.65
+                    hrp.CanCollide = false
+                    -- Oyuncunun kutu içinde her konumda etkileşime girebilmesi için kütle merkezi ayarı
+                    hrp.CustomPhysicalProperties = PhysicalProperties.new(0.7, 0.3, 0.5, 1, 1)
                 end
             end
         end
@@ -191,11 +191,10 @@ HitboxToggle.MouseButton1Click:Connect(function()
             if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                 player.Character.HumanoidRootPart.Size = size
                 player.Character.HumanoidRootPart.Transparency = 1
-                player.Character.HumanoidRootPart.CanCollide = originalCollisions[player] or true
+                player.Character.HumanoidRootPart.CustomPhysicalProperties = nil
             end
         end
         originalSizes = {}
-        originalCollisions = {}
     end
 end)
 
@@ -224,7 +223,7 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- Touch Fling Fonksiyonu
+-- Gelişmiş Touch Fling (Kutunun sınırlarına göre tetiklenen mesafe kontrolü)
 local function flingLoop()
     local lp = Players.LocalPlayer
     local c, hrp, vel, movel = nil, nil, nil, 0.1
@@ -235,13 +234,26 @@ local function flingLoop()
         hrp = c and c:FindFirstChild("HumanoidRootPart")
 
         if hrp then
-            vel = hrp.Velocity
-            hrp.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
-            RunService.RenderStepped:Wait()
-            hrp.Velocity = vel
-            RunService.Stepped:Wait()
-            hrp.Velocity = vel + Vector3.new(0, movel, 0)
-            movel = -movel
+            -- Yakındaki oyuncuların devasa hitbox sınırlarını baz alarak hızı tetikle
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player ~= lp and player.Character then
+                    local targetHrp = player.Character:FindFirstChild("HumanoidRootPart")
+                    if targetHrp then
+                        local distance = (hrp.Position - targetHrp.Position).Magnitude
+                        -- Hitbox boyutu ne kadar büyükse o kadar geniş alanda tetiklenmesini sağla
+                        if distance <= (hitboxSize / 1.5) then
+                            vel = hrp.Velocity
+                            hrp.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
+                            RunService.RenderStepped:Wait()
+                            hrp.Velocity = vel
+                            RunService.Stepped:Wait()
+                            hrp.Velocity = vel + Vector3.new(0, movel, 0)
+                            movel = -movel
+                            break
+                        end
+                    end
+                end
+            end
         end
     end
 end
@@ -280,7 +292,7 @@ UnloadButton.MouseButton1Click:Connect(function()
         if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             player.Character.HumanoidRootPart.Size = size
             player.Character.HumanoidRootPart.Transparency = 1
-            player.Character.HumanoidRootPart.CanCollide = originalCollisions[player] or true
+            player.Character.HumanoidRootPart.CustomPhysicalProperties = nil
         end
     end
     
