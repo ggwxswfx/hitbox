@@ -1,122 +1,173 @@
--- Liquid Style Clean GUI (Hitbox + Touch Fling Only)
+-- Güzel Roblox GUI Scripti (Hitbox + Touch Fling Entegreli)
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local LocalPlayer = Players.LocalPlayer
+local CoreGui = game:GetService("CoreGui")
 
--- Eski GUI kalıntısını temizle
-if CoreGui:FindFirstChild("LiquidCleanGui") then
-    CoreGui.LiquidCleanGui:Destroy()
+local player = Players.LocalPlayer
+
+-- Eski GUI varsa temizle
+if CoreGui:FindFirstChild("GuzelGui") then
+    CoreGui.GuzelGui:Destroy()
 end
 
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "LiquidCleanGui"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = CoreGui
+-- ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "GuzelGui"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = CoreGui
 
--- Ana Pencere (Gönderdiğin görseldeki modern grid yapısı)
-local MainContainer = Instance.new("Frame")
-MainContainer.Name = "MainContainer"
-MainContainer.Size = UDim2.new(0, 780, 0, 420)
-MainContainer.Position = UDim2.new(0.5, -390, 0.5, -210)
-MainContainer.BackgroundColor3 = Color3.fromRGB(13, 13, 16)
-MainContainer.BackgroundTransparency = 0.05
-MainContainer.BorderSizePixel = 0
-MainContainer.Active = true
-MainContainer.Draggable = true
-MainContainer.Parent = ScreenGui
+-- Ana Çerçeve (Main Frame)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 320, 0, 420)
+mainFrame.Position = UDim2.new(0.5, -160, 0.5, -210)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
 
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 10)
-MainCorner.Parent = MainContainer
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = mainFrame
 
--- Sütun (Kategori) Oluşturucu Fonksiyon
-local function createCategory(name, positionX)
-    local CategoryFrame = Instance.new("ScrollingFrame")
-    CategoryFrame.Name = name .. "Category"
-    CategoryFrame.Size = UDim2.new(0, 120, 1, -20)
-    CategoryFrame.Position = UDim2.new(0, positionX, 0, 10)
-    CategoryFrame.BackgroundTransparency = 1
-    CategoryFrame.BorderSizePixel = 0
-    CategoryFrame.CanvasSize = UDim2.new(0, 0, 1.5, 0)
-    CategoryFrame.ScrollBarThickness = 2
-    CategoryFrame.Parent = MainContainer
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Color = Color3.fromRGB(80, 80, 90)
+mainStroke.Thickness = 1.5
+mainStroke.Parent = mainFrame
 
-    local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.Size = UDim2.new(1, 0, 0, 30)
-    TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Text = name
-    TitleLabel.TextColor3 = Color3.fromRGB(180, 180, 195)
-    TitleLabel.TextSize = 13
-    TitleLabel.Font = Enum.Font.GothamBold
-    TitleLabel.Parent = CategoryFrame
+-- Gölge efekti
+local shadow = Instance.new("ImageLabel")
+shadow.Name = "Shadow"
+shadow.BackgroundTransparency = 1
+shadow.Image = "rbxassetid://1316045217"
+shadow.ImageColor3 = Color3.new(0, 0, 0)
+shadow.ImageTransparency = 0.5
+shadow.ScaleType = Enum.ScaleType.Slice
+shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+shadow.Size = UDim2.new(1, 30, 1, 30)
+shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+shadow.ZIndex = -1
+shadow.Parent = mainFrame
 
-    local UIListLayout = Instance.new("UIListLayout")
-    UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    UIListLayout.Padding = UDim.new(0, 6)
-    UIListLayout.Parent = CategoryFrame
+-- Başlık Çubuğu (Title Bar)
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 45)
+titleBar.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
 
-    local UIPadding = Instance.new("UIPadding")
-    UIPadding.PaddingTop = UDim.new(0, 35)
-    UIPadding.PaddingLeft = UDim.new(0, 4)
-    UIPadding.PaddingRight = UDim.new(0, 4)
-    UIPadding.Parent = CategoryFrame
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 12)
+titleCorner.Parent = titleBar
 
-    return CategoryFrame
-end
+local titleFix = Instance.new("Frame")
+titleFix.Size = UDim2.new(1, 0, 0, 15)
+titleFix.Position = UDim2.new(0, 0, 1, -15)
+titleFix.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+titleFix.BorderSizePixel = 0
+titleFix.ZIndex = 0
+titleFix.Parent = titleBar
 
--- 6 Sütunlu Modern Tasarım Sekmeleri
-local combatCol = createCategory("Combat", 15)
-local movementCol = createCategory("Movement", 140)
-local visualsCol = createCategory("Visuals", 265)
-local utilityCol = createCategory("Utility", 390)
-local playerCol = createCategory("Player", 515)
-local themesCol = createCategory("Themes", 640)
+local titleText = Instance.new("TextLabel")
+titleText.Name = "TitleText"
+titleText.Size = UDim2.new(1, -50, 1, 0)
+titleText.Position = UDim2.new(0, 15, 0, 0)
+titleText.BackgroundTransparency = 1
+titleText.Text = "✨ Hitbox & Fling Menü"
+titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleText.TextSize = 16
+titleText.Font = Enum.Font.GothamBold
+titleText.TextXAlignment = Enum.TextXAlignment.Left
+titleText.Parent = titleBar
 
--- 1. Sütun (Combat): HitBox Butonu ve Slider'ı
+-- Kapat Butonu
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -38, 0.5, -15)
+closeButton.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextSize = 14
+closeButton.BorderSizePixel = 0
+closeButton.Parent = titleBar
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeButton
+
+-- İçerik Alanı (ScrollingFrame for clean layout)
+local contentFrame = Instance.new("ScrollingFrame")
+contentFrame.Name = "Content"
+contentFrame.Size = UDim2.new(1, -20, 1, -60)
+contentFrame.Position = UDim2.new(0, 10, 0, 55)
+contentFrame.BackgroundTransparency = 1
+contentFrame.BorderSizePixel = 0
+contentFrame.CanvasSize = UDim2.new(0, 0, 0, 260)
+contentFrame.ScrollBarThickness = 3
+contentFrame.Parent = mainFrame
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.Padding = UDim.new(0, 10)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Parent = contentFrame
+
+
+-- --- ÖZELLİK ELEMANLARI ---
+
+-- 1. Hitbox Toggle Butonu
 local HitboxToggle = Instance.new("TextButton")
-HitboxToggle.Size = UDim2.new(1, 0, 0, 32)
-HitboxToggle.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
+HitboxToggle.Name = "HitboxButton"
+HitboxToggle.Size = UDim2.new(1, 0, 0, 45)
+HitboxToggle.BackgroundColor3 = Color3.fromRGB(55, 55, 65)
 HitboxToggle.Text = "  HitBox: OFF"
-HitboxToggle.TextColor3 = Color3.fromRGB(150, 150, 165)
-HitboxToggle.TextSize = 11
+HitboxToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
 HitboxToggle.Font = Enum.Font.GothamMedium
+HitboxToggle.TextSize = 15
 HitboxToggle.TextXAlignment = Enum.TextXAlignment.Left
+HitboxToggle.BorderSizePixel = 0
+HitboxToggle.LayoutOrder = 1
 HitboxToggle.AutoButtonColor = false
-HitboxToggle.Parent = combatCol
+HitboxToggle.Parent = contentFrame
 
-local HBCorner = Instance.new("UICorner")
-HBCorner.CornerRadius = UDim.new(0, 6)
-HBCorner.Parent = HitboxToggle
+local hbCorner = Instance.new("UICorner")
+hbCorner.CornerRadius = UDim.new(0, 8)
+hbCorner.Parent = HitboxToggle
 
--- Hitbox Slider Paneli (Combat Sütununun hemen altında)
+-- 2. Slider Paneli (Hitbox Boyutu için)
 local SliderContainer = Instance.new("Frame")
-SliderContainer.Size = UDim2.new(1, 0, 0, 45)
-SliderContainer.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
+SliderContainer.Name = "SliderContainer"
+SliderContainer.Size = UDim2.new(1, 0, 0, 55)
+SliderContainer.BackgroundColor3 = Color3.fromRGB(40, 40, 48)
 SliderContainer.BorderSizePixel = 0
-SliderContainer.Parent = combatCol
+SliderContainer.LayoutOrder = 2
+SliderContainer.Parent = contentFrame
 
 local SliderCorner = Instance.new("UICorner")
-SliderCorner.CornerRadius = UDim.new(0, 6)
+SliderCorner.CornerRadius = UDim.new(0, 8)
 SliderCorner.Parent = SliderContainer
 
 local ValueLabel = Instance.new("TextLabel")
-ValueLabel.Size = UDim2.new(1, -6, 0, 18)
-ValueLabel.Position = UDim2.new(0, 4, 0, 4)
+ValueLabel.Size = UDim2.new(1, -16, 0, 22)
+ValueLabel.Position = UDim2.new(0, 10, 0, 6)
 ValueLabel.BackgroundTransparency = 1
-ValueLabel.Text = "Size: 2"
-ValueLabel.TextColor3 = Color3.fromRGB(160, 160, 175)
-ValueLabel.TextSize = 10
-ValueLabel.Font = Enum.Font.Gotham
+ValueLabel.Text = "Hitbox Boyutu: 2"
+ValueLabel.TextColor3 = Color3.fromRGB(200, 200, 215)
+ValueLabel.TextSize = 13
+ValueLabel.Font = Enum.Font.GothamMedium
 ValueLabel.TextXAlignment = Enum.TextXAlignment.Left
 ValueLabel.Parent = SliderContainer
 
 local SliderBar = Instance.new("TextButton")
-SliderBar.Size = UDim2.new(1, -12, 0, 5)
-SliderBar.Position = UDim2.new(0, 6, 0, 28)
-SliderBar.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+SliderBar.Size = UDim2.new(1, -20, 0, 6)
+SliderBar.Position = UDim2.new(0, 10, 0, 36)
+SliderBar.BackgroundColor3 = Color3.fromRGB(60, 60, 75)
 SliderBar.Text = ""
 SliderBar.AutoButtonColor = false
 SliderBar.Parent = SliderContainer
@@ -127,7 +178,7 @@ SliderBarCorner.Parent = SliderBar
 
 local SliderFill = Instance.new("Frame")
 SliderFill.Size = UDim2.new(0.01, 0, 1, 0)
-SliderFill.BackgroundColor3 = Color3.fromRGB(110, 80, 255)
+SliderFill.BackgroundColor3 = Color3.fromRGB(90, 110, 220)
 SliderFill.BorderSizePixel = 0
 SliderFill.Parent = SliderBar
 
@@ -135,37 +186,45 @@ local SliderFillCorner = Instance.new("UICorner")
 SliderFillCorner.CornerRadius = UDim.new(0, 3)
 SliderFillCorner.Parent = SliderFill
 
--- 4. Sütun (Utility): Touch Fling Butonu ve Unload Butonu
+
+-- 3. Touch Fling Toggle Butonu
 local FlingToggle = Instance.new("TextButton")
-FlingToggle.Size = UDim2.new(1, 0, 0, 32)
-FlingToggle.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
-FlingToggle.Text = "  Touch Fling"
-FlingToggle.TextColor3 = Color3.fromRGB(150, 150, 165)
-FlingToggle.TextSize = 11
+FlingToggle.Name = "FlingButton"
+FlingToggle.Size = UDim2.new(1, 0, 0, 45)
+FlingToggle.BackgroundColor3 = Color3.fromRGB(55, 55, 65)
+FlingToggle.Text = "  Touch Fling: OFF"
+FlingToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
 FlingToggle.Font = Enum.Font.GothamMedium
+FlingToggle.TextSize = 15
 FlingToggle.TextXAlignment = Enum.TextXAlignment.Left
+FlingToggle.BorderSizePixel = 0
+FlingToggle.LayoutOrder = 3
 FlingToggle.AutoButtonColor = false
-FlingToggle.Parent = utilityCol
+FlingToggle.Parent = contentFrame
 
-local FlingCorner = Instance.new("UICorner")
-FlingCorner.CornerRadius = UDim.new(0, 6)
-FlingCorner.Parent = FlingToggle
+local flingCorner = Instance.new("UICorner")
+flingCorner.CornerRadius = UDim.new(0, 8)
+flingCorner.Parent = FlingToggle
 
--- Unload Butonu (Utility Sütununa eklendi)
+
+-- 4. Unload Butonu
 local UnloadButton = Instance.new("TextButton")
-UnloadButton.Size = UDim2.new(1, 0, 0, 32)
-UnloadButton.BackgroundColor3 = Color3.fromRGB(45, 20, 25)
-UnloadButton.Text = "  Unload Script"
-UnloadButton.TextColor3 = Color3.fromRGB(255, 100, 100)
-UnloadButton.TextSize = 11
+UnloadButton.Name = "UnloadButton"
+UnloadButton.Size = UDim2.new(1, 0, 0, 45)
+UnloadButton.BackgroundColor3 = Color3.fromRGB(65, 30, 35)
+UnloadButton.Text = "  Scripti Kapat (Unload)"
+UnloadButton.TextColor3 = Color3.fromRGB(255, 120, 120)
 UnloadButton.Font = Enum.Font.GothamMedium
+UnloadButton.TextSize = 15
 UnloadButton.TextXAlignment = Enum.TextXAlignment.Left
+UnloadButton.BorderSizePixel = 0
+UnloadButton.LayoutOrder = 4
 UnloadButton.AutoButtonColor = false
-UnloadButton.Parent = utilityCol
+UnloadButton.Parent = contentFrame
 
-local UnloadCorner = Instance.new("UICorner")
-UnloadCorner.CornerRadius = UDim.new(0, 6)
-UnloadCorner.Parent = UnloadButton
+local unloadCorner = Instance.new("UICorner")
+unloadCorner.CornerRadius = UDim.new(0, 8)
+unloadCorner.Parent = UnloadButton
 
 
 -- --- SCRIPT MANTIKLARI ---
@@ -186,13 +245,13 @@ end
 -- Hitbox Döngüsü
 local hbConnection = RunService.RenderStepped:Connect(function()
     if hbEnabled then
-        for _, player in ipairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character then
-                local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-                local humanoid = player.Character:FindFirstChild("Humanoid")
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p ~= player and p.Character then
+                local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+                local humanoid = p.Character:FindFirstChild("Humanoid")
                 if hrp and humanoid and humanoid.Health > 0 then
-                    if not originalSizes[player] then
-                        originalSizes[player] = hrp.Size
+                    if not originalSizes[p] then
+                        originalSizes[p] = hrp.Size
                     end
                     hrp.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
                     hrp.Transparency = 0.65
@@ -204,23 +263,21 @@ local hbConnection = RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Hitbox Toggle
+-- Hitbox Toggle İşlevi
 HitboxToggle.MouseButton1Click:Connect(function()
     hbEnabled = not hbEnabled
     if hbEnabled then
         HitboxToggle.Text = "  HitBox: ON"
-        HitboxToggle.BackgroundColor3 = Color3.fromRGB(240, 240, 245)
-        HitboxToggle.TextColor3 = Color3.fromRGB(15, 15, 20)
+        TweenService:Create(HitboxToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(90, 110, 220)}):Play()
     else
         HitboxToggle.Text = "  HitBox: OFF"
-        HitboxToggle.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
-        HitboxToggle.TextColor3 = Color3.fromRGB(150, 150, 165)
+        TweenService:Create(HitboxToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(55, 55, 65)}):Play()
         
-        for player, size in pairs(originalSizes) do
-            if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                player.Character.HumanoidRootPart.Size = size
-                player.Character.HumanoidRootPart.Transparency = 1
-                player.Character.HumanoidRootPart.CustomPhysicalProperties = nil
+        for p, size in pairs(originalSizes) do
+            if p and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                p.Character.HumanoidRootPart.Size = size
+                p.Character.HumanoidRootPart.Transparency = 1
+                p.Character.HumanoidRootPart.CustomPhysicalProperties = nil
             end
         end
         originalSizes = {}
@@ -228,33 +285,33 @@ HitboxToggle.MouseButton1Click:Connect(function()
 end)
 
 -- Slider Kontrolü (1 - 100)
-local dragging = false
+local draggingSlider = false
 SliderBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        draggingSlider = true
     end
 end)
 
 UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        draggingSlider = false
     end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+    if draggingSlider and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
         local mousePos = UserInputService:GetMouseLocation()
         local relativeX = math.clamp((mousePos.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
         SliderFill.Size = UDim2.new(relativeX, 0, 1, 0)
         
         hitboxSize = math.floor(1 + (relativeX * 99))
-        ValueLabel.Text = "Size: " .. hitboxSize
+        ValueLabel.Text = "Hitbox Boyutu: " .. hitboxSize
     end
 end)
 
 -- Touch Fling Mantığı
 local function flingLoop()
-    local lp = Players.LocalPlayer
+    local lp = player
     local c, hrp, vel, movel = nil, nil, nil, 0.1
 
     while flingEnabled do
@@ -263,9 +320,9 @@ local function flingLoop()
         hrp = c and c:FindFirstChild("HumanoidRootPart")
 
         if hrp then
-            for _, player in ipairs(Players:GetPlayers()) do
-                if player ~= lp and player.Character then
-                    local targetHrp = player.Character:FindFirstChild("HumanoidRootPart")
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p ~= lp and p.Character then
+                    local targetHrp = p.Character:FindFirstChild("HumanoidRootPart")
                     if targetHrp then
                         local distance = (hrp.Position - targetHrp.Position).Magnitude
                         if distance <= (hitboxSize / 1.5) then
@@ -285,43 +342,101 @@ local function flingLoop()
     end
 end
 
--- Fling Toggle
+-- Fling Toggle İşlevi
 FlingToggle.MouseButton1Click:Connect(function()
     flingEnabled = not flingEnabled
     if flingEnabled then
         FlingToggle.Text = "  Touch Fling: ON"
-        FlingToggle.BackgroundColor3 = Color3.fromRGB(240, 240, 245)
-        FlingToggle.TextColor3 = Color3.fromRGB(15, 15, 20)
+        TweenService:Create(FlingToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(90, 110, 220)}):Play()
         
         flingThread = coroutine.create(flingLoop)
         coroutine.resume(flingThread)
     else
-        FlingToggle.Text = "  Touch Fling"
-        FlingToggle.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
-        FlingToggle.TextColor3 = Color3.fromRGB(150, 150, 165)
+        FlingToggle.Text = "  Touch Fling: OFF"
+        TweenService:Create(FlingToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(55, 55, 65)}):Play()
     end
 end)
 
--- Sağ Shift ile Arayüz Gizleme/Gösterme
-UserInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.RightShift then
-        MainContainer.Visible = not MainContainer.Visible
-    end
+-- Menüyü açmak için küçük bir buton (menü gizlendiğinde görünür)
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(0, 50, 0, 50)
+toggleButton.Position = UDim2.new(0, 20, 0, 20)
+toggleButton.BackgroundColor3 = Color3.fromRGB(90, 110, 220)
+toggleButton.Text = "☰"
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.TextSize = 22
+toggleButton.BorderSizePixel = 0
+toggleButton.Parent = screenGui
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 25)
+toggleCorner.Parent = toggleButton
+
+toggleButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = true
 end)
 
--- Unload Butonu
+closeButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+end)
+
+-- Unload Butonu İşlevi
 UnloadButton.MouseButton1Click:Connect(function()
     hbEnabled = false
     flingEnabled = false
     if hbConnection then hbConnection:Disconnect() end
     
-    for player, size in pairs(originalSizes) do
-        if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character.HumanoidRootPart.Size = size
-            player.Character.HumanoidRootPart.Transparency = 1
-            player.Character.HumanoidRootPart.CustomPhysicalProperties = nil
+    for p, size in pairs(originalSizes) do
+        if p and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            p.Character.HumanoidRootPart.Size = size
+            p.Character.HumanoidRootPart.Transparency = 1
+            p.Character.HumanoidRootPart.CustomPhysicalProperties = nil
         end
     end
     
-    ScreenGui:Destroy()
+    screenGui:Destroy()
 end)
+
+-- ==== SÜRÜKLEME ÖZELLİĞİ ====
+local dragging = false
+local dragInput, dragStart, startPos
+
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+titleBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- Açılış animasyonu
+mainFrame.Size = UDim2.new(0, 0, 0, 0)
+mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+    Size = UDim2.new(0, 320, 0, 420),
+    Position = UDim2.new(0.5, -160, 0.5, -210)
+}):Play()
